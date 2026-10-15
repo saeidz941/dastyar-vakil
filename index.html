@@ -1,1 +1,165 @@
 
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183153">
+  <title>دستیار وکیل</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Tahoma, sans-serif;
+      background: #f1f4f9;
+      color: #183153;
+    }
+    header {
+      background: #183153;
+      color: white;
+      padding: 22px;
+      border-radius: 16px;
+      text-align: center;
+    }
+    h1 { font-size: 24px; margin: 0 0 10px; }
+    .card {
+      background: white;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px #0000000d;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 9px;
+      font: inherit;
+    }
+    input, textarea { border: 1px solid #ccd4df; }
+    button {
+      background: #183153;
+      color: white;
+      border: 0;
+      cursor: pointer;
+    }
+    .task {
+      border-bottom: 1px solid #e2e7ee;
+      padding: 12px 0;
+      overflow-wrap: anywhere;
+    }
+    .task small { display: block; margin-top: 7px; }
+    .delete { background: #a52b37; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>دستیار وکیل</h1>
+    <div>مدیریت جلسات و کارهای روزانه</div>
+    <p id="today"></p>
+  </header>
+
+  <section class="card">
+    <h2>ثبت جلسه یا کار جدید</h2>
+    <form id="taskForm">
+      <input id="title" placeholder="عنوان جلسه یا کار" required>
+      <input id="date" type="date" required>
+      <input id="time" type="time" required>
+      <textarea id="notes" placeholder="توضیحات و یادداشت‌ها"></textarea>
+      <button type="submit">ثبت مورد جدید</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>فهرست جلسات و کارها</h2>
+    <div id="tasks">هنوز موردی ثبت نشده است.</div>
+    <button id="backup">خروجی پشتیبان (JSON)</button>
+  </section>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    let tasks = [];
+
+    try {
+      tasks = JSON.parse(localStorage.getItem("vakilTasks") || "[]");
+      if (!Array.isArray(tasks)) tasks = [];
+    } catch {
+      tasks = [];
+    }
+
+    $("today").textContent =
+      new Date().toLocaleDateString("fa-IR-u-ca-persian", {
+        weekday: "long", year: "numeric",
+        month: "long", day: "numeric"
+      });
+
+    function save() {
+      localStorage.setItem("vakilTasks", JSON.stringify(tasks));
+      render();
+    }
+
+    function render() {
+      $("tasks").replaceChildren();
+
+      if (!tasks.length) {
+        $("tasks").textContent = "هنوز موردی ثبت نشده است.";
+        return;
+      }
+
+      tasks.forEach((task, index) => {
+        const item = document.createElement("div");
+        item.className = "task";
+
+        const heading = document.createElement("strong");
+        heading.textContent = task.title;
+
+        const details = document.createElement("small");
+        details.textContent =
+          `${task.date} - ${task.time}` +
+          (task.notes ? ` | ${task.notes}` : "");
+
+        const remove = document.createElement("button");
+        remove.className = "delete";
+        remove.textContent = "حذف";
+        remove.onclick = () => {
+          tasks.splice(index, 1);
+          save();
+        };
+
+        item.append(heading, details, remove);
+        $("tasks").append(item);
+      });
+    }
+
+    $("taskForm").addEventListener("submit", event => {
+      event.preventDefault();
+
+      tasks.push({
+        title: $("title").value.trim(),
+        date: $("date").value,
+        time: $("time").value,
+        notes: $("notes").value.trim()
+      });
+
+      save();
+      event.target.reset();
+    });
+
+    $("backup").onclick = () => {
+      const blob = new Blob(
+        [JSON.stringify(tasks, null, 2)],
+        { type: "application/json;charset=utf-8" }
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vakil-backup.json";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+
+    render();
+  </script>
+</body>
+</html>
