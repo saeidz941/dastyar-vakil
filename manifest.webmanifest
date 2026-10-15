@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "دستیار وکیل",
+  "short_name": "دستیار وکیل",
+  "description": "مدیریت جلسات، قرارها و کارهای روزانه",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f4f9",
+  "theme_color": "#183153"
+}
