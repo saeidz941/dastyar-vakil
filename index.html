@@ -1,165 +1,1172 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#183153">
+  <meta name="description" content="دستیار وکیل برای مدیریت جلسات، قرارها و کارهای روزانه">
+  <meta name="color-scheme" content="light dark">
+
   <title>دستیار وکیل</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+
   <style>
+    :root {
+      --bg: #f2f5fa;
+      --surface: #ffffff;
+      --text: #1b2c43;
+      --muted: #64748b;
+      --primary: #183153;
+      --primary-text: #ffffff;
+      --border: #dce3ed;
+      --danger: #b42332;
+      --success: #147d55;
+      --input: #ffffff;
+      --shadow: 0 4px 18px #1831530c;
+    }
+
+    body.dark {
+      --bg: #101722;
+      --surface: #1b2635;
+      --text: #edf2f8;
+      --muted: #a7b4c7;
+      --primary: #789bc9;
+      --primary-text: #101722;
+      --border: #354358;
+      --danger: #ff7d87;
+      --success: #66d6a6;
+      --input: #111b29;
+      --shadow: 0 4px 18px #00000020;
+    }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      padding: 20px;
-      font-family: Tahoma, sans-serif;
-      background: #f1f4f9;
-      color: #183153;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.8;
+      transition: background .2s, color .2s;
     }
-    header {
-      background: #183153;
-      color: white;
-      padding: 22px;
-      border-radius: 16px;
-      text-align: center;
-    }
-    h1 { font-size: 24px; margin: 0 0 10px; }
-    .card {
-      background: white;
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px #0000000d;
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 9px;
+
+    button, input, textarea, select {
       font: inherit;
     }
-    input, textarea { border: 1px solid #ccd4df; }
-    button {
+
+    button { cursor: pointer; }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #4c8de5;
+      outline-offset: 2px;
+    }
+
+    .container {
+      width: min(100% - 24px, 760px);
+      margin: 0 auto;
+      padding-bottom: 32px;
+    }
+
+    .header {
       background: #183153;
       color: white;
-      border: 0;
-      cursor: pointer;
+      padding: 23px 20px;
+      border-radius: 0 0 22px 22px;
+      box-shadow: var(--shadow);
     }
-    .task {
-      border-bottom: 1px solid #e2e7ee;
-      padding: 12px 0;
+
+    .header h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .header p {
+      margin: 5px 0 12px;
+      color: #d6e2f1;
+    }
+
+    #today {
+      font-size: 13px;
+      color: #edf3fb;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .toolbar button {
+      flex: 1;
+      min-width: 100px;
+      background: #ffffff18;
+      color: white;
+      border: 1px solid #ffffff44;
+      border-radius: 10px;
+      padding: 9px;
+    }
+
+    .card {
+      margin-top: 16px;
+      padding: 17px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 12px;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: 0 0 6px;
       overflow-wrap: anywhere;
     }
-    .task small { display: block; margin-top: 7px; }
-    .delete { background: #a52b37; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>دستیار وکیل</h1>
-    <div>مدیریت جلسات و کارهای روزانه</div>
-    <p id="today"></p>
-  </header>
 
-  <section class="card">
-    <h2>ثبت جلسه یا کار جدید</h2>
-    <form id="taskForm">
-      <input id="title" placeholder="عنوان جلسه یا کار" required>
-      <input id="date" type="date" required>
-      <input id="time" type="time" required>
-      <textarea id="notes" placeholder="توضیحات و یادداشت‌ها"></textarea>
-      <button type="submit">ثبت مورد جدید</button>
-    </form>
-  </section>
-
-  <section class="card">
-    <h2>فهرست جلسات و کارها</h2>
-    <div id="tasks">هنوز موردی ثبت نشده است.</div>
-    <button id="backup">خروجی پشتیبان (JSON)</button>
-  </section>
-
-  <script>
-    const $ = id => document.getElementById(id);
-    let tasks = [];
-
-    try {
-      tasks = JSON.parse(localStorage.getItem("vakilTasks") || "[]");
-      if (!Array.isArray(tasks)) tasks = [];
-    } catch {
-      tasks = [];
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
     }
 
-    $("today").textContent =
-      new Date().toLocaleDateString("fa-IR-u-ca-persian", {
-        weekday: "long", year: "numeric",
-        month: "long", day: "numeric"
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 6px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      color: var(--primary);
+    }
+
+    .stat span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin: 10px 0 4px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input);
+      color: var(--text);
+      min-height: 45px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: var(--primary-text);
+    }
+
+    .btn-block {
+      display: flex;
+      width: 100%;
+      margin-top: 13px;
+    }
+
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-small {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .task {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .task:last-child { border-bottom: 0; }
+
+    .task-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .task-meta {
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+      margin: 7px 0;
+    }
+
+    .task-notes {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }
+
+    .task-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 22px 4px;
+    }
+
+    .notice {
+      border-right: 4px solid var(--primary);
+      background: var(--bg);
+      padding: 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .hidden { display: none !important; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 22px 5px;
+    }
+
+    @media (max-width: 420px) {
+      .grid, .filters { grid-template-columns: 1fr; }
+      .header h1 { font-size: 21px; }
+      .card { padding: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+      <h1 id="appTitle">⚖️ دستیار وکیل</h1>
+      <p id="appSubtitle">مدیریت جلسات، قرارها و کارهای روزانه</p>
+      <div id="today">در حال نمایش تاریخ...</div>
+
+      <div class="toolbar">
+        <button id="themeBtn" type="button">🌙 حالت شب</button>
+        <button id="languageBtn" type="button">English</button>
+        <button id="exportBtn" type="button">⬇️ پشتیبان‌گیری</button>
+        <button id="importBtn" type="button">⬆️ بازیابی پشتیبان</button>
+        <input id="importFile" type="file" accept=".json,application/json" class="hidden">
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="stats" aria-label="آمار کارها">
+      <div class="stat">
+        <strong id="totalCount">۰</strong>
+        <span id="totalLabel">کل موارد</span>
+      </div>
+      <div class="stat">
+        <strong id="todayCount">۰</strong>
+        <span id="todayLabel">موارد امروز</span>
+      </div>
+      <div class="stat">
+        <strong id="doneCount">۰</strong>
+        <span id="doneLabel">انجام‌شده</span>
+      </div>
+    </section>
+
+    <section class="card" id="formCard">
+      <h2 id="formHeading">➕ ثبت جلسه یا کار جدید</h2>
+
+      <form id="taskForm">
+        <input id="editId" type="hidden">
+
+        <label for="title" id="titleLabel">عنوان جلسه یا کار *</label>
+        <input id="title" maxlength="200" required
+          placeholder="مثلاً جلسه با موکل">
+
+        <div class="grid">
+          <div>
+            <label for="category" id="categoryLabel">نوع مورد</label>
+            <select id="category">
+              <option value="meeting">جلسه</option>
+              <option value="court">جلسه دادگاه</option>
+              <option value="call">تماس تلفنی</option>
+              <option value="task">کار روزانه</option>
+              <option value="deadline">مهلت قانونی</option>
+              <option value="other">سایر</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="priority" id="priorityLabel">اولویت</label>
+            <select id="priority">
+              <option value="normal">عادی</option>
+              <option value="important">مهم</option>
+              <option value="urgent">فوری</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div>
+            <label for="date" id="dateLabel">تاریخ *</label>
+            <input id="date" type="date" required>
+          </div>
+          <div>
+            <label for="time" id="timeLabel">ساعت *</label>
+            <input id="time" type="time" required>
+          </div>
+        </div>
+
+        <label for="notes" id="notesLabel">توضیحات و یادداشت‌ها</label>
+        <textarea id="notes" maxlength="10000"
+          placeholder="یادداشت‌ها، مدارک لازم و اقدامات بعدی"></textarea>
+
+        <button class="btn btn-block" type="submit" id="saveBtn">
+          ثبت مورد جدید
+        </button>
+
+        <button class="btn btn-secondary btn-block hidden"
+          type="button" id="cancelEditBtn">
+          انصراف از ویرایش
+        </button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 id="listHeading">📋 جلسات و کارها</h2>
+
+      <div class="filters">
+        <input id="search" type="search"
+          placeholder="جست‌وجو در عنوان و یادداشت‌ها">
+
+        <select id="statusFilter">
+          <option value="all">همه موارد</option>
+          <option value="pending">در انتظار انجام</option>
+          <option value="done">انجام‌شده</option>
+        </select>
+      </div>
+
+      <div style="margin-top:10px">
+        <select id="sortFilter">
+          <option value="dateAsc">قدیمی‌ترین تاریخ ابتدا</option>
+          <option value="dateDesc">جدیدترین تاریخ ابتدا</option>
+          <option value="priority">اولویت بالا ابتدا</option>
+        </select>
+      </div>
+
+      <div id="tasks" aria-live="polite">
+        <div class="empty">هنوز موردی ثبت نشده است.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="settingsHeading">⚙️ تنظیمات و امنیت</h2>
+
+      <p id="storageInfo" class="muted">
+        اطلاعات در حافظه محلی مرورگر همین دستگاه ذخیره می‌شوند.
+      </p>
+
+      <div class="notice" id="securityNotice">
+        اطلاعات پرونده‌ها و مشخصات موکلان محرمانه هستند.
+        این نسخه همگام‌سازی ابری یا رمزگذاری اختصاصی ندارد.
+        از دستگاه امن استفاده کنید و مرتباً پشتیبان بگیرید.
+      </div>
+
+      <button class="btn btn-secondary btn-block"
+        id="clearDoneBtn" type="button">
+        حذف موارد انجام‌شده
+      </button>
+
+      <button class="btn btn-danger btn-block"
+        id="clearAllBtn" type="button">
+        حذف تمام اطلاعات
+      </button>
+    </section>
+
+    <footer id="footerText">
+      دستیار وکیل — نسخه اولیه
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+    const STORAGE_KEY = "dastyarVakil.tasks.v1";
+    const SETTINGS_KEY = "dastyarVakil.settings.v1";
+
+    const translations = {
+      fa: {
+        dir: "rtl",
+        title: "⚖️ دستیار وکیل",
+        subtitle: "مدیریت جلسات، قرارها و کارهای روزانه",
+        night: "🌙 حالت شب",
+        day: "☀️ حالت روز",
+        backup: "⬇️ پشتیبان‌گیری",
+        restore: "⬆️ بازیابی پشتیبان",
+        total: "کل موارد",
+        today: "موارد امروز",
+        done: "انجام‌شده",
+        newItem: "➕ ثبت جلسه یا کار جدید",
+        editItem: "✏️ ویرایش مورد",
+        titleLabel: "عنوان جلسه یا کار *",
+        titlePlaceholder: "مثلاً جلسه با موکل",
+        category: "نوع مورد",
+        priority: "اولویت",
+        date: "تاریخ *",
+        time: "ساعت *",
+        notes: "توضیحات و یادداشت‌ها",
+        notesPlaceholder: "یادداشت‌ها، مدارک لازم و اقدامات بعدی",
+        save: "ثبت مورد جدید",
+        update: "ذخیره تغییرات",
+        cancel: "انصراف از ویرایش",
+        list: "📋 جلسات و کارها",
+        search: "جست‌وجو در عنوان و یادداشت‌ها",
+        all: "همه موارد",
+        pending: "در انتظار انجام",
+        completed: "انجام‌شده",
+        oldest: "قدیمی‌ترین تاریخ ابتدا",
+        newest: "جدیدترین تاریخ ابتدا",
+        prioritySort: "اولویت بالا ابتدا",
+        settings: "⚙️ تنظیمات و امنیت",
+        storage: "اطلاعات در حافظه محلی مرورگر همین دستگاه ذخیره می‌شوند.",
+        security: "اطلاعات پرونده‌ها و مشخصات موکلان محرمانه هستند. این نسخه همگام‌سازی ابری یا رمزگذاری اختصاصی ندارد. از دستگاه امن استفاده کنید و مرتباً پشتیبان بگیرید.",
+        clearDone: "حذف موارد انجام‌شده",
+        clearAll: "حذف تمام اطلاعات",
+        footer: "دستیار وکیل — نسخه اولیه",
+        empty: "هنوز موردی ثبت نشده است.",
+        noResults: "موردی مطابق جست‌وجو پیدا نشد.",
+        meeting: "جلسه",
+        court: "جلسه دادگاه",
+        call: "تماس تلفنی",
+        task: "کار روزانه",
+        deadline: "مهلت قانونی",
+        other: "سایر",
+        normal: "عادی",
+        important: "مهم",
+        urgent: "فوری",
+        markDone: "انجام شد ✓",
+        markPending: "بازگرداندن به فهرست کارها",
+        edit: "ویرایش",
+        delete: "حذف",
+        notesShort: "یادداشت",
+        confirmDelete: "این مورد حذف شود؟",
+        confirmClearDone: "تمام موارد انجام‌شده حذف شوند؟",
+        confirmClearAll: "تمام اطلاعات این برنامه حذف شوند؟ این کار قابل بازگشت نیست.",
+        invalidBackup: "فایل پشتیبان معتبر نیست.",
+        restoreMode: "برای بازیابی، «جایگزینی» یا «ادغام» را انتخاب کن.\nOK = جایگزینی اطلاعات فعلی\nCancel = انصراف",
+        restoreMerge: "می‌خواهی اطلاعات پشتیبان به اطلاعات فعلی اضافه شود؟",
+        restored: "بازیابی انجام شد.",
+        exported: "اگر فایل دانلود نشد، مجوز دانلود مرورگر را بررسی کن.",
+        storageError: "ذخیره‌سازی ناموفق بود. فضای دستگاه و تنظیمات مرورگر را بررسی کن.",
+        duplicate: "شناسه تکراری در فایل پشتیبان وجود دارد.",
+        language: "English",
+        noTitle: "بدون عنوان",
+        datePrefix: "تاریخ",
+        timePrefix: "ساعت",
+        statusDone: "انجام‌شده",
+        statusPending: "در انتظار انجام",
+        confirmReplace: "اطلاعات فعلی با نسخه پشتیبان جایگزین شود؟"
+      },
+      en: {
+        dir: "ltr",
+        title: "⚖️ Lawyer Assistant",
+        subtitle: "Manage meetings, appointments and daily tasks",
+        night: "🌙 Dark mode",
+        day: "☀️ Light mode",
+        backup: "⬇️ Back up",
+        restore: "⬆️ Restore backup",
+        total: "Total items",
+        today: "Today's items",
+        done: "Completed",
+        newItem: "➕ Add meeting or task",
+        editItem: "✏️ Edit item",
+        titleLabel: "Meeting or task title *",
+        titlePlaceholder: "e.g. Client meeting",
+        category: "Category",
+        priority: "Priority",
+        date: "Date *",
+        time: "Time *",
+        notes: "Notes",
+        notesPlaceholder: "Notes, required documents and next steps",
+        save: "Add item",
+        update: "Save changes",
+        cancel: "Cancel editing",
+        list: "📋 Meetings and tasks",
+        search: "Search titles and notes",
+        all: "All items",
+        pending: "Pending",
+        completed: "Completed",
+        oldest: "Oldest date first",
+        newest: "Newest date first",
+        prioritySort: "Highest priority first",
+        settings: "⚙️ Settings and security",
+        storage: "Data is stored in this browser on this device.",
+        security: "Client and case information is confidential. This version has no cloud sync or dedicated encryption. Use a secure device and back up regularly.",
+        clearDone: "Delete completed items",
+        clearAll: "Delete all data",
+        footer: "Lawyer Assistant — Initial version",
+        empty: "No items have been added yet.",
+        noResults: "No matching items found.",
+        meeting: "Meeting",
+        court: "Court hearing",
+        call: "Phone call",
+        task: "Daily task",
+        deadline: "Legal deadline",
+        other: "Other",
+        normal: "Normal",
+        important: "Important",
+        urgent: "Urgent",
+        markDone: "Mark completed ✓",
+        markPending: "Mark pending",
+        edit: "Edit",
+        delete: "Delete",
+        notesShort: "Notes",
+        confirmDelete: "Delete this item?",
+        confirmClearDone: "Delete all completed items?",
+        confirmClearAll: "Delete all app data? This cannot be undone.",
+        invalidBackup: "The backup file is invalid.",
+        restoreMode: "Choose Replace or Merge.\nOK = Replace current data\nCancel = Abort",
+        restoreMerge: "Merge backup items with current data?",
+        restored: "Backup restored.",
+        exported: "If the file does not download, check browser download permissions.",
+        storageError: "Could not save data. Check device storage and browser settings.",
+        duplicate: "Duplicate IDs were found in the backup.",
+        language: "فارسی",
+        noTitle: "Untitled",
+        datePrefix: "Date",
+        timePrefix: "Time",
+        statusDone: "Completed",
+        statusPending: "Pending",
+        confirmReplace: "Replace current data with this backup?"
+      }
+    };
+
+    let tasks = [];
+    let settings = {
+      theme: "light",
+      language: "fa"
+    };
+
+    let storageAvailable = true;
+
+    function t(key) {
+      return translations[settings.language][key] ||
+        translations.fa[key] || key;
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        tasks = Array.isArray(parsed) ? parsed.filter(isValidTask) : [];
+      } catch (error) {
+        tasks = [];
+        storageAvailable = false;
+      }
+
+      try {
+        const rawSettings = localStorage.getItem(SETTINGS_KEY);
+        const parsedSettings = rawSettings
+          ? JSON.parse(rawSettings) : {};
+
+        settings.theme =
+          ["light", "dark"].includes(parsedSettings.theme)
+            ? parsedSettings.theme : "light";
+
+        settings.language =
+          ["fa", "en"].includes(parsedSettings.language)
+            ? parsedSettings.language : "fa";
+      } catch (error) {
+        settings = { theme: "light", language: "fa" };
+      }
+    }
+
+    function isValidTask(task) {
+      return !!task &&
+        typeof task.id === "string" &&
+        typeof task.title === "string" &&
+        typeof task.date === "string" &&
+        typeof task.time === "string";
+    }
+
+    function saveTasks() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+        storageAvailable = true;
+        render();
+        return true;
+      } catch (error) {
+        storageAvailable = false;
+        alert(t("storageError"));
+        render();
+        return false;
+      }
+    }
+
+    function saveSettings() {
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      } catch (error) {
+        // Settings remain active for the current session.
+      }
+    }
+
+    function makeId() {
+      if (window.crypto && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+      }
+      return Date.now().toString(36) +
+        Math.random().toString(36).slice(2);
+    }
+
+    function todayISO() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDate(isoDate) {
+      const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+      if (!parts) return isoDate;
+
+      const date = new Date(
+        Number(parts[1]),
+        Number(parts[2]) - 1,
+        Number(parts[3]),
+        12
+      );
+
+      try {
+        const locale = settings.language === "fa" ? "fa-IR" : "en-GB";
+        const options = {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        };
+
+        if (settings.language === "fa") {
+          options.calendar = "persian";
+        }
+
+        return new Intl.DateTimeFormat(locale, options).format(date);
+      } catch (error) {
+        return isoDate;
+      }
+    }
+
+    function formatToday() {
+      const locale = settings.language === "fa" ? "fa-IR" : "en-GB";
+      const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      };
+
+      if (settings.language === "fa") {
+        options.calendar = "persian";
+      }
+
+      $("today").textContent =
+        new Intl.DateTimeFormat(locale, options).format(new Date());
+    }
+
+    function formatTime(time) {
+      return time || "--:--";
+    }
+
+    function categoryName(value) {
+      return t(value in translations.fa ? value : "other");
+    }
+
+    function priorityName(value) {
+      return t(value in translations.fa ? value : "normal");
+    }
+
+    function setSelectOptions(id, values, selectedValue) {
+      const select = $(id);
+      select.replaceChildren();
+
+      values.forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        select.append(option);
       });
 
-    function save() {
-      localStorage.setItem("vakilTasks", JSON.stringify(tasks));
+      select.value = selectedValue;
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = settings.language;
+      document.documentElement.dir = t("dir");
+
+      const map = {
+        appTitle: "title",
+        appSubtitle: "subtitle",
+        exportBtn: "backup",
+        importBtn: "restore",
+        totalLabel: "total",
+        todayLabel: "today",
+        doneLabel: "done",
+        titleLabel: "titleLabel",
+        categoryLabel: "category",
+        priorityLabel: "priority",
+        dateLabel: "date",
+        timeLabel: "time",
+        notesLabel: "notes",
+        listHeading: "list",
+        settingsHeading: "settings",
+        storageInfo: "storage",
+        securityNotice: "security",
+        clearDoneBtn: "clearDone",
+        clearAllBtn: "clearAll",
+        footerText: "footer",
+        cancelEditBtn: "cancel"
+      };
+
+      Object.entries(map).forEach(([id, key]) => {
+        $(id).textContent = t(key);
+      });
+
+      $("title").placeholder = t("titlePlaceholder");
+      $("notes").placeholder = t("notesPlaceholder");
+      $("search").placeholder = t("search");
+      $("languageBtn").textContent = t("language");
+
+      $("themeBtn").textContent =
+        settings.theme === "dark" ? t("day") : t("night");
+
+      setSelectOptions("category", [
+        ["meeting", t("meeting")],
+        ["court", t("court")],
+        ["call", t("call")],
+        ["task", t("task")],
+        ["deadline", t("deadline")],
+        ["other", t("other")]
+      ], $("category").value || "meeting");
+
+      setSelectOptions("priority", [
+        ["normal", t("normal")],
+        ["important", t("important")],
+        ["urgent", t("urgent")]
+      ], $("priority").value || "normal");
+
+      setSelectOptions("statusFilter", [
+        ["all", t("all")],
+        ["pending", t("pending")],
+        ["done", t("completed")]
+      ], $("statusFilter").value || "all");
+
+      setSelectOptions("sortFilter", [
+        ["dateAsc", t("oldest")],
+        ["dateDesc", t("newest")],
+        ["priority", t("prioritySort")]
+      ], $("sortFilter").value || "dateAsc");
+
+      document.body.classList.toggle("dark", settings.theme === "dark");
+
+      const metaTheme = document.querySelector('meta[name="theme-color"]');
+      metaTheme.content = settings.theme === "dark" ? "#101722" : "#183153";
+
+      document.title = settings.language === "fa"
+        ? "دستیار وکیل" : "Lawyer Assistant";
+
+      formatToday();
+      updateFormLabels();
       render();
     }
 
-    function render() {
-      $("tasks").replaceChildren();
+    function updateFormLabels() {
+      const editing = !!$("editId").value;
+      $("formHeading").textContent = editing ? t("editItem") : t("newItem");
+      $("saveBtn").textContent = editing ? t("update") : t("save");
+      $("cancelEditBtn").classList.toggle("hidden", !editing);
+    }
 
-      if (!tasks.length) {
-        $("tasks").textContent = "هنوز موردی ثبت نشده است.";
+    function getPriorityRank(priority) {
+      return { urgent: 0, important: 1, normal: 2 }[priority] ?? 2;
+    }
+
+    function render() {
+      const container = $("tasks");
+      container.replaceChildren();
+
+      const today = todayISO();
+      $("totalCount").textContent = String(tasks.length);
+      $("todayCount").textContent =
+        String(tasks.filter(task => task.date === today).length);
+      $("doneCount").textContent =
+        String(tasks.filter(task => task.completed).length);
+
+      if (!storageAvailable) {
+        $("storageInfo").textContent =
+          t("storage") + " ⚠️ " + t("storageError");
+      } else {
+        $("storageInfo").textContent = t("storage");
+      }
+
+      const query = $("search").value.trim().toLocaleLowerCase();
+      const status = $("statusFilter").value;
+      const sort = $("sortFilter").value;
+
+      let filtered = tasks.filter(task => {
+        const searchable =
+          `${task.title} ${task.notes || ""}`.toLocaleLowerCase();
+
+        const matchesSearch = !query || searchable.includes(query);
+        const matchesStatus = status === "all" ||
+          (status === "done" && task.completed) ||
+          (status === "pending" && !task.completed);
+
+        return matchesSearch && matchesStatus;
+      });
+
+      filtered.sort((a, b) => {
+        if (sort === "dateDesc") {
+          return `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`);
+        }
+
+        if (sort === "priority") {
+          return getPriorityRank(a.priority) -
+            getPriorityRank(b.priority) ||
+            `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
+        }
+
+        return `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`);
+      });
+
+      if (!filtered.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = tasks.length ? t("noResults") : t("empty");
+        container.append(empty);
         return;
       }
 
-      tasks.forEach((task, index) => {
-        const item = document.createElement("div");
+      filtered.forEach(task => {
+        const item = document.createElement("article");
         item.className = "task";
 
-        const heading = document.createElement("strong");
-        heading.textContent = task.title;
+        const top = document.createElement("div");
+        top.className = "task-top";
 
-        const details = document.createElement("small");
-        details.textContent =
-          `${task.date} - ${task.time}` +
-          (task.notes ? ` | ${task.notes}` : "");
+        const heading = document.createElement("h3");
+        heading.textContent = task.title || t("noTitle");
 
-        const remove = document.createElement("button");
-        remove.className = "delete";
-        remove.textContent = "حذف";
-        remove.onclick = () => {
-          tasks.splice(index, 1);
-          save();
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = task.completed
+          ? t("statusDone") : priorityName(task.priority);
+
+        top.append(heading, badge);
+
+        const meta = document.createElement("div");
+        meta.className = "task-meta";
+        meta.textContent =
+          `${categoryName(task.category)} · ${formatDate(task.date)} · ` +
+          `${formatTime(task.time)} · ` +
+          (task.completed ? t("statusDone") : t("statusPending"));
+
+        item.append(top, meta);
+
+        if (task.notes) {
+          const notes = document.createElement("div");
+          notes.className = "task-notes";
+          notes.textContent = task.notes;
+          item.append(notes);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const doneBtn = document.createElement("button");
+        doneBtn.type = "button";
+        doneBtn.className = "btn btn-small btn-success";
+        doneBtn.textContent = task.completed
+          ? t("markPending") : t("markDone");
+
+        doneBtn.onclick = () => {
+          const index = tasks.findIndex(x => x.id === task.id);
+          if (index < 0) return;
+          tasks[index].completed = !tasks[index].completed;
+          saveTasks();
         };
 
-        item.append(heading, details, remove);
-        $("tasks").append(item);
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn btn-small btn-secondary";
+        editBtn.textContent = t("edit");
+        editBtn.onclick = () => beginEdit(task.id);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "btn btn-small btn-danger";
+        deleteBtn.textContent = t("delete");
+        deleteBtn.onclick = () => {
+          if (!confirm(t("confirmDelete"))) return;
+          tasks = tasks.filter(x => x.id !== task.id);
+          saveTasks();
+        };
+
+        actions.append(doneBtn, editBtn, deleteBtn);
+        item.append(actions);
+        container.append(item);
       });
+    }
+
+    function resetForm() {
+      $("taskForm").reset();
+      $("editId").value = "";
+      $("date").value = todayISO();
+      $("time").value = "09:00";
+      $("category").value = "meeting";
+      $("priority").value = "normal";
+      updateFormLabels();
+    }
+
+    function beginEdit(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+
+      $("editId").value = task.id;
+      $("title").value = task.title;
+      $("category").value = task.category || "meeting";
+      $("priority").value = task.priority || "normal";
+      $("date").value = task.date;
+      $("time").value = task.time;
+      $("notes").value = task.notes || "";
+
+      updateFormLabels();
+      $("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("title").focus();
     }
 
     $("taskForm").addEventListener("submit", event => {
       event.preventDefault();
 
-      tasks.push({
-        title: $("title").value.trim(),
-        date: $("date").value,
-        time: $("time").value,
-        notes: $("notes").value.trim()
-      });
+      const title = $("title").value.trim();
+      const date = $("date").value;
+      const time = $("time").value;
 
-      save();
-      event.target.reset();
+      if (!title || !date || !time) return;
+
+      const editId = $("editId").value;
+
+      if (editId) {
+        const index = tasks.findIndex(item => item.id === editId);
+        if (index < 0) return;
+
+        tasks[index] = {
+          ...tasks[index],
+          title,
+          category: $("category").value,
+          priority: $("priority").value,
+          date,
+          time,
+          notes: $("notes").value.trim(),
+          updatedAt: new Date().toISOString()
+        };
+      } else {
+        tasks.push({
+          id: makeId(),
+          title,
+          category: $("category").value,
+          priority: $("priority").value,
+          date,
+          time,
+          notes: $("notes").value.trim(),
+          completed: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      if (saveTasks()) resetForm();
     });
 
-    $("backup").onclick = () => {
+    $("cancelEditBtn").addEventListener("click", resetForm);
+
+    $("search").addEventListener("input", render);
+    $("statusFilter").addEventListener("change", render);
+    $("sortFilter").addEventListener("change", render);
+
+    $("themeBtn").addEventListener("click", () => {
+      settings.theme = settings.theme === "dark" ? "light" : "dark";
+      saveSettings();
+      applyLanguage();
+    });
+
+    $("languageBtn").addEventListener("click", () => {
+      settings.language = settings.language === "fa" ? "en" : "fa";
+      saveSettings();
+      applyLanguage();
+    });
+
+    $("exportBtn").addEventListener("click", () => {
+      const backup = {
+        app: "dastyar-vakil",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        tasks
+      };
+
       const blob = new Blob(
-        [JSON.stringify(tasks, null, 2)],
+        [JSON.stringify(backup, null, 2)],
         { type: "application/json;charset=utf-8" }
       );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "vakil-backup.json";
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    };
 
-    render();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "dastyar-vakil-backup.json";
+      document.body.append(link);
+      link.click();
+      link.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      alert(t("exported"));
+    });
+
+    $("importBtn").addEventListener("click", () => {
+      $("importFile").click();
+    });
+
+    $("importFile").addEventListener("change", async event => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      try {
+        const data = JSON.parse(await file.text());
+        const imported = Array.isArray(data) ? data : data.tasks;
+
+        if (!Array.isArray(imported) ||
+            !imported.every(isValidTask)) {
+          throw new Error("Invalid backup");
+        }
+
+        const ids = imported.map(item => item.id);
+        if (new Set(ids).size !== ids.length) {
+          alert(t("duplicate"));
+          return;
+        }
+
+        if (!confirm(t("confirmReplace"))) {
+          if (!confirm(t("restoreMerge"))) return;
+
+          const existingIds = new Set(tasks.map(item => item.id));
+          const additions = imported.filter(item => !existingIds.has(item.id));
+          tasks = tasks.concat(additions);
+        } else {
+          tasks = imported;
+        }
+
+        if (saveTasks()) alert(t("restored"));
+      } catch (error) {
+        alert(t("invalidBackup"));
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    $("clearDoneBtn").addEventListener("click", () => {
+      if (!confirm(t("confirmClearDone"))) return;
+      tasks = tasks.filter(task => !task.completed);
+      saveTasks();
+    });
+
+    $("clearAllBtn").addEventListener("click", () => {
+      if (!confirm(t("confirmClearAll"))) return;
+      tasks = [];
+      saveTasks();
+      resetForm();
+    });
+
+    loadData();
+    applyLanguage();
+    resetForm();
+
+    if ("serviceWorker" in navigator &&
+        location.protocol.startsWith("http")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {
+          // Offline caching can be configured after deployment.
+        });
+      });
+    }
   </script>
 </body>
-</html>
+        </html>
